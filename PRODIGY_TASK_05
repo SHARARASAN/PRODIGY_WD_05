@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="weather-container">
+        <h1>Weather App</h1>
+
+        <!-- Search for Weather by Location -->
+        <div class="search-bar">
+            <input type="text" id="locationInput" placeholder="Enter city or location" />
+            <button id="searchBtn">Get Weather</button>
+            <button id="geoBtn">Use My Location</button>
+        </div>
+
+        <!-- Display Weather Data -->
+        <div id="weatherData" class="weather-data">
+            <h2 id="cityName"></h2>
+            <p id="temperature"></p>
+            <p id="condition"></p>
+            <p id="humidity"></p>
+            <p id="wind"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+/* Reset styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.weather-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 350px;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    padding: 10px;
+    width: 60%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.search-bar button {
+    padding: 10px 15px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-bar button:hover {
+    background-color: #555;
+}
+
+.weather-data {
+    display: none;
+    margin-top: 20px;
+}
+
+.weather-data h2 {
+    font-size: 24px;
+    color: #333;
+}
+
+.weather-data p {
+    font-size: 18px;
+    color: #555;
+    margin: 5px 0;
+}
+
+// OpenWeatherMap API Key (replace 'YOUR_API_KEY' with your actual API key)
+const apiKey = 'YOUR_API_KEY';
+
+// DOM elements
+const searchBtn = document.getElementById('searchBtn');
+const geoBtn = document.getElementById('geoBtn');
+const locationInput = document.getElementById('locationInput');
+const weatherDataDiv = document.getElementById('weatherData');
+const cityName = document.getElementById('cityName');
+const temperature = document.getElementById('temperature');
+const condition = document.getElementById('condition');
+const humidity = document.getElementById('humidity');
+const wind = document.getElementById('wind');
+
+// Fetch weather data by city name
+const fetchWeatherByCity = (city) => {
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+        .then(response => response.json())
+        .then(data => displayWeather(data))
+        .catch(error => alert("City not found"));
+};
+
+// Fetch weather data by coordinates
+const fetchWeatherByCoords = (lat, lon) => {
+    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`)
+        .then(response => response.json())
+        .then(data => displayWeather(data))
+        .catch(error => alert("Unable to retrieve weather data"));
+};
+
+// Display weather data on the page
+const displayWeather = (data) => {
+    const { name } = data;
+    const { temp } = data.main;
+    const { description } = data.weather[0];
+    const { humidity } = data.main;
+    const { speed } = data.wind;
+
+    cityName.textContent = `Weather in ${name}`;
+    temperature.textContent = `Temperature: ${temp}°C`;
+    condition.textContent = `Condition: ${description}`;
+    humidity.textContent = `Humidity: ${humidity}%`;
+    wind.textContent = `Wind Speed: ${speed} m/s`;
+
+    weatherDataDiv.style.display = "block";
+};
+
+// Search weather by city name
+searchBtn.addEventListener('click', () => {
+    const city = locationInput.value;
+    if (city) {
+        fetchWeatherByCity(city);
+    }
+});
+
+// Search weather by user's geolocation
+geoBtn.addEventListener('click', () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const { latitude, longitude } = position.coords;
+            fetchWeatherByCoords(latitude, longitude);
+        });
+    } else {
+        alert("Geolocation is not supported by your browser.");
+    }
+});
+
